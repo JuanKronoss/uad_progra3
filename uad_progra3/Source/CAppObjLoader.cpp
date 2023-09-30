@@ -337,9 +337,9 @@ void CAppObjLoader::onF2(int mods)
 
 	if (GetOpenFileName(&ofn))
 	{
-		int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wideStringBuffer[0], (int)wideStringBuffer.size(), NULL, 0, NULL, NULL);
+		int size_needed = WideCharToMultiByte(CP_ACP, 0, &wideStringBuffer[0], (int)wideStringBuffer.size(), NULL, 0, NULL, NULL);
 		std::string multibyteString(size_needed, 0);
-		WideCharToMultiByte(CP_UTF8, 0, &wideStringBuffer[0], (int)wideStringBuffer.size(), &multibyteString[0], size_needed, NULL, NULL);
+		WideCharToMultiByte(CP_ACP, 0, &wideStringBuffer[0], (int)wideStringBuffer.size(), &multibyteString[0], size_needed, NULL, NULL);
 		cout << "Filename to load: " << multibyteString.c_str() << endl;
 
 		if (!load3DModel(multibyteString.c_str()))

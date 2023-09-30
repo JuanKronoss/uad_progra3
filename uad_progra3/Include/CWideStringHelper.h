@@ -183,7 +183,7 @@ public:
 		}
 
 		// Calculate the number of characters (including the null terminator) needed to hold the wide character version of the string
-		int numWideCharsNeeded = MultiByteToWideChar(CP_UTF8, 0, str, (int)-1, NULL, 0);
+		int numWideCharsNeeded = MultiByteToWideChar(CP_ACP, 0, str, (int)-1, NULL, 0);
 
 		if (numWideCharsNeeded == 0)
 		{
@@ -193,7 +193,7 @@ public:
 
 		wchar_t *wstr = new wchar_t[numWideCharsNeeded];
 		int numCharsConverted = MultiByteToWideChar(
-			CP_UTF8, 
+			CP_ACP,
 			0, 
 			str, 
 			(int)( sizeof(char) * (strlen(str) + 1) ), 
@@ -234,7 +234,7 @@ public:
 		}
 
 		// Calculate the number of characters (including the null terminator) needed to hold the multibyte character version of the string
-		int numCharsNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr, (int)-1, NULL, 0, NULL, NULL);
+		int numCharsNeeded = WideCharToMultiByte(CP_ACP, 0, wstr, (int)-1, NULL, 0, NULL, NULL);
 
 		if (numCharsNeeded == 0)
 		{
@@ -244,7 +244,7 @@ public:
 
 		char *str = new char[numCharsNeeded];
 		int numCharsConverted = WideCharToMultiByte(
-			CP_UTF8,
+			CP_ACP,
 			0,
 			wstr,
 			numCharsNeeded,
