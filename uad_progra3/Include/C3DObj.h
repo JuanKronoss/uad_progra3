@@ -28,6 +28,16 @@ public:
 
 	bool isModelLoaded() { return m_modelLoaded; }
 
+	vector<float>* getVertices() { return &m_vertices; }
+	vector<float>* getNormals() { return &m_normals; }
+	vector<float>* getTextureCoords() { return &m_textureCoords; }
+
+	unordered_map<string, string>* getMaterialFiles() { return &m_materialFiles; }
+	unordered_map<string, MaterialFaces*>* getFacesPerMateriel() { return &m_facesPerMaterial; }
+	
+	bool hasUVs() { return m_hasUVs; }
+	bool hasTextures() { return m_hasTextures; }
+
 private:
 
 	fstream m_objectFile;
@@ -35,14 +45,17 @@ private:
 	vector<string> m_parametersLoaded; //"v", "vn", "vt", "f"
 
 	vector<float> m_vertices;
-	vector<float> m_normals;
-	vector<float> m_textureCoords;
+	vector<float> m_normals;	//0.0	0.0		0.0
+	vector<float> m_textureCoords; //0.0	0.0
 
 	unordered_map<string, string> m_materialFiles;
 
 	MaterialFaces* m_currentMaterial;
 
 	unordered_map<string, MaterialFaces*> m_facesPerMaterial;
-	
+
+	bool m_hasUVs = true;
+	bool m_hasTextures = true;
+
 	bool m_modelLoaded = true; //True until is no longer possible
 };

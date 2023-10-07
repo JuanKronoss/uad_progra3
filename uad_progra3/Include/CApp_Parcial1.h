@@ -20,7 +20,12 @@ private:
 	// ---------------------------------------------------
 	//
 	// ---------------------------------------------------
-	C3DObj m_currentObject;
+	C3DObj m_3dObject;
+
+	unsigned int m_shaderID;
+	unordered_map<string, unsigned int> m_textureIDMap;
+	unordered_map<string, unsigned int> m_geometryIDMap;
+	unordered_map<string, unsigned int> m_numFacesInMtl;
 
 
 protected:

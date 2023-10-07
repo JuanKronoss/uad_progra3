@@ -25,6 +25,13 @@ bool C3DObj::readObjFile(const char* obj_file)
 	string currentLine;
 	string currentMaterial;
 
+	string vertex = "v";
+	string normal = "vn";
+	string texture = "vt";
+	string materialLibrary = "mtllib";
+	string materialUse = "usemtl";
+	string face = "f";
+
 	while ((!objFile.eof()) && m_modelLoaded)
 	{
 		getline(objFile, currentLine);
@@ -34,41 +41,48 @@ bool C3DObj::readObjFile(const char* obj_file)
 		istringstream analyseLine{ currentLine };
 		analyseLine >> token >> material;
 
-		if (token == "v")
+		if (token == vertex)
 		{
 			readVertices(currentLine);
 		}
-		else if (token == "vn")
+		else if (token == normal)
 		{
 			readNormals(currentLine);
 		}
-		else if (token == "vt")
+		else if (token == texture)
 		{
 			readTextureCoords(currentLine);
 		}
-		else if (token == "mtllib")
+		else if (token == materialLibrary)
 		{
 			readMtlLib(currentLine);
 		}
-		else if (token == "usemtl")
+		else if (token == materialUse)
 		{
 			currentMaterial = material;
 		}
-		else if (token == "f")
+		else if (token == face)
 		{
 			readFaces(currentLine, currentMaterial);
 		}
 	}
-	
-	int parametersNeeded{ 4 };
-	
-	if (parametersNeeded != m_parametersLoaded.size())
+
+	if (find(m_parametersLoaded.begin(), m_parametersLoaded.end(), vertex) == m_parametersLoaded.end())
 	{
 		m_modelLoaded = false;
 	}
-	else
+	if (find(m_parametersLoaded.begin(), m_parametersLoaded.end(), normal) == m_parametersLoaded.end())
 	{
-		m_modelLoaded = true;
+		m_normals.push_back(0.0);
+		m_normals.push_back(0.0);
+		m_normals.push_back(0.0);
+	}
+	if (find(m_parametersLoaded.begin(), m_parametersLoaded.end(), texture) == m_parametersLoaded.end())
+	{
+		m_textureCoords.push_back(0.0);
+		m_textureCoords.push_back(0.0);
+
+		m_hasUVs = false;
 	}
 
 	return m_modelLoaded;
@@ -196,16 +210,22 @@ void C3DObj::readFaces(const string line, string material)
 
 	istringstream faceLine{ line };
 	//istringstream faceLine{ "f 5/1/1 1/3/1 2/4/1 6/2/1" };
-	//istringstream faceLine{ "f 5/1/1 1/3/1 2/4/1 6/2/1 7/7/7" };
+	//istringstream faceLine{ "f 501//1 1/3/ 2/4/1 6/2/1 7/7/7 8/8/8" };
 
-	faceLine >> parameter >> firstVertex >> secondVertex >> thirdVertex >> fourthVertex >> nGon;
+	vector<string> faceVertices;
+	
+	faceLine >> parameter;
+	string vertex;
 
-	//Unable to read N-Gons
-	if (nGon != "")
+	while (!faceLine.eof())
 	{
-		cout << "\a\nCannot load N-Gons!\n";
-		m_modelLoaded = false;
-		return;
+		faceLine >> vertex;
+
+		if (!vertex.empty())
+		{
+			faceVertices.push_back(vertex);
+		}
+		vertex = "";
 	}
 
 	if (m_facesPerMaterial.find(material) == m_facesPerMaterial.end())
@@ -215,122 +235,262 @@ void C3DObj::readFaces(const string line, string material)
 		m_currentMaterial->m_materialFile = material;
 	}
 	m_currentMaterial = m_facesPerMaterial[material];
-	
 
-	//This is a Quad
-	if (fourthVertex != "")
+	int faceFirstVertex = 0;
+	int faceSecondVertex = 1;
+	int faceThirdVertex = faceVertices.size() - 1;
+
+	int vertexIdx;
+	int uvIdx;
+	int normalIdx;
+
+	string idxStr;
+	string vertexIdxStr;
+	string uvIdxStr;
+	string normalIdxStr;
+
+	char divisionChar = '/';
+
+	unsigned short elementIdx = 0;
+
+	enum ELEMENTS
 	{
-		//Dividing the Quad into two triangles
-		string face1FirstVertex = firstVertex;
-		string face1SecondVertex = secondVertex;
-		string face1ThirdVertex = fourthVertex;
+		VERTEX = 0,
+		UV,
+		NORMAL
+	};
 
-		int face1FirstVertexIdx;
-		int face1SecondVertexIdx;
-		int face1ThirdVertexIdx;
-
-		int face1FirstUvIdx;
-		int face1SecondUvIdx;
-		int face1ThirdUvIdx;
-
-		int face1FirstNormalIdx;
-		int face1SecondNormalIdx;
-		int face1ThirdNormalIdx;
-
-		face1FirstVertexIdx = face1FirstVertex[0] - '0';
-		face1SecondVertexIdx = face1SecondVertex[0] - '0';
-		face1ThirdVertexIdx = face1ThirdVertex[0] - '0';
-		m_currentMaterial->m_facesVerticesIdx.push_back(face1FirstVertexIdx);
-		m_currentMaterial->m_facesVerticesIdx.push_back(face1SecondVertexIdx);
-		m_currentMaterial->m_facesVerticesIdx.push_back(face1ThirdVertexIdx);
-
-		face1FirstUvIdx = face1FirstVertex[2] - '0';
-		face1SecondUvIdx = face1SecondVertex[2] - '0';
-		face1ThirdUvIdx = face1ThirdVertex[2] - '0';
-		m_currentMaterial->m_facesTexturesIdx.push_back(face1FirstUvIdx);
-		m_currentMaterial->m_facesTexturesIdx.push_back(face1SecondUvIdx);
-		m_currentMaterial->m_facesTexturesIdx.push_back(face1ThirdUvIdx);
-
-		face1FirstNormalIdx = face1FirstVertex[4] - '0';
-		face1SecondNormalIdx = face1SecondVertex[4] - '0';
-		face1ThirdNormalIdx = face1ThirdVertex[4] - '0';
-		m_currentMaterial->m_facesNormalsIdx.push_back(face1FirstNormalIdx);
-		m_currentMaterial->m_facesNormalsIdx.push_back(face1SecondNormalIdx);
-		m_currentMaterial->m_facesNormalsIdx.push_back(face1ThirdNormalIdx);
-
-		string face2FirstVertex = secondVertex;
-		string face2SecondVertex = thirdVertex;
-		string face2ThirdVertex = fourthVertex;
-
-		int face2FirstVertexIdx;
-		int face2SecondVertexIdx;
-		int face2ThirdVertexIdx;
-
-		int face2FirstUvIdx;
-		int face2SecondUvIdx;
-		int face2ThirdUvIdx;
-
-		int face2FirstNormalIdx;
-		int face2SecondNormalIdx;
-		int face2ThirdNormalIdx;
-
-		face2FirstVertexIdx = face2FirstVertex[0] - '0';
-		face2SecondVertexIdx = face2SecondVertex[0] - '0';
-		face2ThirdVertexIdx = face2ThirdVertex[0] - '0';
-		m_currentMaterial->m_facesVerticesIdx.push_back(face2FirstVertexIdx);
-		m_currentMaterial->m_facesVerticesIdx.push_back(face2SecondVertexIdx);
-		m_currentMaterial->m_facesVerticesIdx.push_back(face2ThirdVertexIdx);
-
-		face2FirstUvIdx = face2FirstVertex[2] - '0';
-		face2SecondUvIdx = face2SecondVertex[2] - '0';
-		face2ThirdUvIdx = face2ThirdVertex[2] - '0';
-		m_currentMaterial->m_facesTexturesIdx.push_back(face2FirstUvIdx);
-		m_currentMaterial->m_facesTexturesIdx.push_back(face2SecondUvIdx);
-		m_currentMaterial->m_facesTexturesIdx.push_back(face2ThirdUvIdx);
-
-		face2FirstNormalIdx = face2FirstVertex[4] - '0';
-		face2SecondNormalIdx = face2SecondVertex[4] - '0';
-		face2ThirdNormalIdx = face2ThirdVertex[4] - '0';
-		m_currentMaterial->m_facesNormalsIdx.push_back(face2FirstNormalIdx);
-		m_currentMaterial->m_facesNormalsIdx.push_back(face2SecondNormalIdx);
-		m_currentMaterial->m_facesNormalsIdx.push_back(face2ThirdNormalIdx);
-	}
-	//Triangles
-	else
+	for (faceFirstVertex; faceSecondVertex < faceThirdVertex; ++faceSecondVertex)
 	{
-		int firstVertexIdx;
-		int secondVertexIdx;
-		int thirdVertexIdx;
+		istringstream faceFirstIdx{ faceVertices[faceFirstVertex] };
 
-		int firstUvIdx;
-		int secondUvIdx;
-		int thirdUvIdx;
+		while (!faceFirstIdx.eof())
+		{
+			getline(faceFirstIdx, idxStr, divisionChar);
 
-		int firstNormalIdx;
-		int secondNormalIdx;
-		int thirdNormalIdx;
+			switch (elementIdx)
+			{
+			case VERTEX:
 
-		firstVertexIdx = firstVertex[0] - '0';
-		secondVertexIdx = secondVertex[0] - '0';
-		thirdVertexIdx = thirdVertex[0] - '0';
-		m_currentMaterial->m_facesVerticesIdx.push_back(firstVertexIdx);
-		m_currentMaterial->m_facesVerticesIdx.push_back(secondVertexIdx);
-		m_currentMaterial->m_facesVerticesIdx.push_back(thirdVertexIdx);
+				if (idxStr.empty())
+				{
+					//cout << "\nNo Vertex\n";
+					m_modelLoaded = false;
+					m_currentMaterial->m_facesVerticesIdx.push_back(0);
+				}
+				else
+				{
+					vertexIdx = stoi(idxStr);
+					m_currentMaterial->m_facesVerticesIdx.push_back(vertexIdx - 1);
+				}
 
-		firstUvIdx = firstVertex[2] - '0';
-		secondUvIdx = secondVertex[2] - '0';
-		thirdUvIdx = thirdVertex[2] - '0';
-		m_currentMaterial->m_facesTexturesIdx.push_back(firstUvIdx);
-		m_currentMaterial->m_facesTexturesIdx.push_back(secondUvIdx);
-		m_currentMaterial->m_facesTexturesIdx.push_back(thirdUvIdx);
+				++elementIdx;
 
-		firstNormalIdx = firstVertex[4] - '0';
-		secondNormalIdx = secondVertex[4] - '0';
-		thirdNormalIdx = thirdVertex[4] - '0';
-		m_currentMaterial->m_facesNormalsIdx.push_back(firstNormalIdx);
-		m_currentMaterial->m_facesNormalsIdx.push_back(secondNormalIdx);
-		m_currentMaterial->m_facesNormalsIdx.push_back(thirdNormalIdx);
+				break;
+
+			case UV:
+
+				if (idxStr.empty())
+				{
+					//           cout << "\nNo UV\n"; 
+					m_hasUVs = false;
+					m_currentMaterial->m_facesTexturesIdx.push_back(0);
+				}
+				else
+				{
+					uvIdx = stoi(idxStr);
+					m_currentMaterial->m_facesTexturesIdx.push_back(uvIdx - 1);
+				}				
+
+				++elementIdx;
+				
+				break;
+
+			case NORMAL:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo normals\n";
+					m_currentMaterial->m_facesNormalsIdx.push_back(0);
+				}
+				else
+				{
+					normalIdx = stoi(idxStr);
+					m_currentMaterial->m_facesNormalsIdx.push_back(normalIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			default:
+
+				m_modelLoaded = false;
+			}
+		}
+		elementIdx = VERTEX;
+
+
+		istringstream faceSecondIdx{ faceVertices[faceSecondVertex] };
+
+		while (!faceSecondIdx.eof())
+		{
+			getline(faceSecondIdx, idxStr, divisionChar);
+
+			switch (elementIdx)
+			{
+			case VERTEX:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo Vertex\n";
+					m_modelLoaded = false;
+					m_currentMaterial->m_facesVerticesIdx.push_back(0);
+				}
+				else
+				{
+					vertexIdx = stoi(idxStr);
+					m_currentMaterial->m_facesVerticesIdx.push_back(vertexIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			case UV:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo UV\n";
+					m_hasUVs = false;
+					m_currentMaterial->m_facesTexturesIdx.push_back(0);
+				}
+				else
+				{
+					uvIdx = stoi(idxStr);
+					m_currentMaterial->m_facesTexturesIdx.push_back(uvIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			case NORMAL:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo normals\n";
+					m_currentMaterial->m_facesNormalsIdx.push_back(0);
+				}
+				else
+				{
+					normalIdx = stoi(idxStr);
+					m_currentMaterial->m_facesNormalsIdx.push_back(normalIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			default:
+
+				m_modelLoaded = false;
+			}
+		}
+		elementIdx = VERTEX;
+
+
+		istringstream faceThirdIdx{ faceVertices[faceThirdVertex] };
+
+		while (!faceThirdIdx.eof())
+		{
+			getline(faceThirdIdx, idxStr, divisionChar);
+
+			switch (elementIdx)
+			{
+			case VERTEX:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo Vertex\n";
+					m_modelLoaded = false;
+					m_currentMaterial->m_facesVerticesIdx.push_back(0);
+				}
+				else
+				{
+					vertexIdx = stoi(idxStr);
+					m_currentMaterial->m_facesVerticesIdx.push_back(vertexIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			case UV:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo UV\n";
+					m_hasUVs = false;
+					m_currentMaterial->m_facesTexturesIdx.push_back(0);
+				}
+				else
+				{
+					uvIdx = stoi(idxStr);
+					m_currentMaterial->m_facesTexturesIdx.push_back(uvIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			case NORMAL:
+
+				if (idxStr.empty())
+				{
+					//cout << "\nNo normals\n";
+					m_currentMaterial->m_facesNormalsIdx.push_back(0);
+				}
+				else
+				{
+					normalIdx = stoi(idxStr);
+					m_currentMaterial->m_facesNormalsIdx.push_back(normalIdx - 1);
+				}
+
+				++elementIdx;
+
+				break;
+
+			default:
+
+				m_modelLoaded = false;
+			}
+		}
+		elementIdx = VERTEX;
+
+		faceFirstVertex = faceSecondVertex;
+		//cout << faceVertices[i][i] << "\n";
 	}
+
+	/*cout << "\nVertices: \n";
+	for (int i = 0; i < m_vertices.size(); ++i)
+	{
+		cout << m_vertices[i] << "\n";
+	}
+
+	cout << "\nUVs: \n";
+	for (int i = 0; i < m_textureCoords.size(); ++i)
+	{
+		cout << m_textureCoords[i] << "\n";
+	}
+
+	cout << "\nNormals: \n";
+	for (int i = 0; i < m_normals.size(); ++i)
+	{
+		cout << m_normals[i] << "\n";
+	}
+
+	cout << "\n";*/
 
 
 	if (find(m_parametersLoaded.begin(), m_parametersLoaded.end(), parameter) == m_parametersLoaded.end())

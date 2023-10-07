@@ -1,10 +1,14 @@
 #include "../stdafx.h"
 #include "windows.h"
 #include <iostream>
+#include <unordered_map>
 using namespace std;
 
 #include "../Include/Globals.h"
 #include "../Include/CApp_Parcial1.h"
+#include "../Include/CTextureLoader.h"
+#include "../Include/MaterialFaces.h"
+#include "../Include/CVector3.h"
 
 /* */
 CApp_Parcial1::CApp_Parcial1() :
@@ -33,6 +37,17 @@ CApp_Parcial1::~CApp_Parcial1()
 	// =================================================
 	//
 	// =================================================
+
+	for (auto id : m_textureIDMap)
+	{
+		getOpenGLRenderer()->deleteTexture(&id.second);
+	}
+
+	for (auto id : m_geometryIDMap)
+	{
+		getOpenGLRenderer()->freeGraphicsMemoryForObject(&id.second);
+	}
+
 }
 
 /* */
@@ -42,6 +57,9 @@ void CApp_Parcial1::initialize()
 	// ==================================
 	//
 	// ==================================
+
+	
+
 }
 
 /* */
@@ -95,9 +113,37 @@ void CApp_Parcial1::render()
 	}
 	else // Otherwise, render app-specific stuff here...
 	{
-		// =================================
-		//
-		// =================================
+		float color[3] = { 1.0f, 1.0f, 1.0f };
+
+		CVector3 position = CVector3::ZeroVector();
+
+		// convert total degrees rotated to radians;
+		//double totalDegreesRotatedRadians = m_objectRotation * 3.1459 / 180.0;
+
+		// Get a matrix that has both the object rotation and translation
+		MathHelper::Matrix4 modelMatrix = MathHelper::SimpleModelMatrixRotationTranslation((float)0.0, position);
+
+		unsigned int modelShader = m_shaderID;
+		
+		for (auto id : m_geometryIDMap)
+		{
+			unsigned int modelVAO = id.second;
+			unsigned int modelTexture = m_textureIDMap[id.first];
+
+			getOpenGLRenderer()->renderObject(
+				&modelShader,
+				&modelVAO,
+				&modelTexture,
+				m_numFacesInMtl[id.first],
+				color,
+				&modelMatrix,
+				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+				false
+			);
+		}
+		
+
+
 	}
 }
 
@@ -148,22 +194,89 @@ void CApp_Parcial1::onF2(int mods)
 		cout << "Filename to load: " << multibyteString.c_str() << endl;
 
 
-		if (!m_currentObject.readObjFile(multibyteString.c_str()))
+		if (!m_3dObject.readObjFile(multibyteString.c_str()))
 		{
 				cout << "\a\nUnable to load 3D model\n";
 		}
 		else
 		{
 			setMenuActive(false);
-		}
 
-		//if (!load3DModel(multibyteString.c_str()))
-		//{
-		//	cout << "Unable to load 3D model" << endl;
-		//}
-		//else
-		//{
-		//	setMenuActive(false);
-		//}
+			if (m_3dObject.hasUVs() && m_3dObject.hasTextures())
+			{
+				unordered_map<string,string>* materialFiles = m_3dObject.getMaterialFiles();
+
+				// Switch shaders to textured object ones
+				m_shaderID = getOpenGLRenderer()->getShaderProgramID(SHADER_PROGRAM_TEXTURED_OBJECT);
+				
+				for (auto file : *materialFiles)
+				{
+					unsigned int newTextureID;
+
+					// LOAD TEXTURE AND ALSO CREATE TEXTURE OBJECT
+					if (CTextureLoader::loadTexture(file.second.c_str(), &newTextureID, getOpenGLRenderer()))
+					{
+						m_textureIDMap[file.first] = newTextureID;
+					}
+					else
+					{
+						// Texture could not be loaded, default back to color shader
+						m_shaderID = getOpenGLRenderer()->getShaderProgramID(SHADER_PROGRAM_COLOR_OBJECT);
+					}
+				}
+
+			}
+			else
+			{
+				// Load color shader
+				m_shaderID = getOpenGLRenderer()->getShaderProgramID(SHADER_PROGRAM_COLOR_OBJECT);
+			}
+
+			unordered_map<string, MaterialFaces*>* facesPerMaterial = m_3dObject.getFacesPerMateriel();
+
+			for (auto faces : *facesPerMaterial)
+			{
+				vector<unsigned short> verticesIdx;
+				vector<unsigned short> normalsIdx;
+				vector<unsigned short> texturesIdx;
+
+				MaterialFaces* currentFaces = faces.second;
+
+				verticesIdx = currentFaces->getFacesVerticesIdx();
+				normalsIdx = currentFaces->getFacesNormalsIdx();
+				texturesIdx = currentFaces->getFacesTexturesIdx();
+
+				bool loadedToGraphicsCard;
+				unsigned int geometryID;
+
+				// Allocate graphics memory for object
+				loadedToGraphicsCard = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
+					&m_shaderID,
+					&geometryID,
+					m_3dObject.getVertices()->data(),
+					m_3dObject.getVertices()->size()/3,
+					m_3dObject.getNormals()->data(),
+					m_3dObject.getNormals()->size()/3,
+					m_3dObject.getTextureCoords()->data(),
+					m_3dObject.getTextureCoords()->size()/2,
+					verticesIdx.data(),
+					verticesIdx.size()/3,
+					normalsIdx.data(),
+					normalsIdx.size()/3,
+					texturesIdx.data(),
+					texturesIdx.size()/3
+				);
+
+				if (!loadedToGraphicsCard)
+				{
+					cout << "\a\nUnable to allocate graphic memory!\n";
+				}
+				else
+				{
+					m_geometryIDMap[faces.first] = geometryID;
+					m_numFacesInMtl[faces.first] = verticesIdx.size() / 3;
+				}
+			}
+		}
 	}
 }

@@ -67,6 +67,12 @@
     <Filter Include="Header Files\Parcial1">
       <UniqueIdentifier>{c521bb4b-a7ce-4a20-a610-5a7e44f85d93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Parcial2">
+      <UniqueIdentifier>{0dc23398-9959-4b9e-80d6-bf601920966c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Parcial2">
+      <UniqueIdentifier>{d15e9482-d96e-4454-9ec6-8d6a03fae78c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -159,8 +165,11 @@
     <ClInclude Include="Include\C3DObj.h">
       <Filter>Header Files\Parcial1</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialFaces.h">
-      <Filter>Source Files\Parcial1</Filter>
+    <ClInclude Include="Include\MaterialFaces.h">
+      <Filter>Header Files\Parcial1</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CApp_Parcial2.h">
+      <Filter>Header Files\Parcial2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -235,6 +244,9 @@
     </ClCompile>
     <ClCompile Include="Source\C3DObj.cpp">
       <Filter>Source Files\Parcial1</Filter>
+    </ClCompile>
+    <ClCompile Include="Include\CApp_Parcial2.cpp">
+      <Filter>Source Files\Parcial2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
