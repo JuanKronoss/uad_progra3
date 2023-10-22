@@ -3,6 +3,7 @@
 #ifndef CAPPPARCIAL2_H
 #define CAPPPARCIAL2_H
 
+#include "CVector3.h"
 #include "Globals.h"
 #include "CApp.h"
 #include "C3DObj.h"
@@ -27,6 +28,9 @@ private:
 	unordered_map<string, unsigned int> m_geometryIDMap;
 	unordered_map<string, unsigned int> m_numFacesInMtl;
 
+	double m_rotationSpeed = 90.0f; //rotation per second
+	double m_currentRotation = 0.0f;
+	CVector3 m_currentPosition{ 0.0f, -20.0f, -15.0f };
 
 protected:
 

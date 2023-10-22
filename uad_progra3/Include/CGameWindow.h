@@ -91,7 +91,7 @@ public:
 	~CGameWindow();
 
 	// Create a window
-	bool create(const char *windowTitle);
+	bool create(const char *windowTitle, bool fullscreen = false);
 
 	// Main loop
 	void mainLoop(void *appPointer);

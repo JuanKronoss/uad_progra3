@@ -39,6 +39,8 @@ public:
 	CApp(int window_width, int window_height);
 	virtual ~CApp();
 
+	bool m_fullscreen = false;
+
 	bool canRun() const;                                  // Can the app run?
 	bool isMenuActive() const;                            // Is the menu active?
 	void setMenuActive(bool active);                      // Activate/deactivate the menu

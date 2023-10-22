@@ -102,7 +102,7 @@ void CGameWindow::initializeGLFW()
 
 /* Create actual window
 */
-bool CGameWindow::create(const char *windowTitle)
+bool CGameWindow::create(const char *windowTitle, bool fullscreen)
 {
 	if (m_Width <= 0 || m_Height <= 0)
 	{
@@ -119,7 +119,14 @@ bool CGameWindow::create(const char *windowTitle)
 	m_WindowTitle.append(windowTitle);
 
 	/* Create a window */
-	m_Window = glfwCreateWindow(m_Width, m_Height, windowTitle, NULL, NULL);
+	if (!fullscreen)
+	{
+		m_Window = glfwCreateWindow(m_Width, m_Height, windowTitle, NULL, NULL);
+	}
+	else
+	{
+		m_Window = glfwCreateWindow(m_Width, m_Height, windowTitle, glfwGetPrimaryMonitor(), NULL);
+	}
 
 	/* If the window cannot be created, return */
 	if (!m_Window)

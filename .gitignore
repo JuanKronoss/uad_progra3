@@ -41,3 +41,10 @@
 *.exe
 *.ipch
 *.db
+*.db
+*.exe
+*.pdb
+*.exe
+*.ipch
+*.pch
+*.idb

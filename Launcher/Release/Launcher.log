@@ -1,0 +1,8 @@
+﻿  pch.cpp
+  Launcher.cpp
+  LauncherDlg.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 297 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Launcher.vcxproj -> C:\Users\juanc\Documents\UAD\4to Cuatrimestre\Programación III\uad_progra3\uad_progra3\Release\Launcher.exe

@@ -9,6 +9,7 @@ using namespace std;
 #include "../Include/CTextureLoader.h"
 #include "../Include/MaterialFaces.h"
 #include "../Include/CVector3.h"
+#include "../Include/MathHelper.h"
 
 /* */
 CApp_Parcial2::CApp_Parcial2() :
@@ -70,7 +71,7 @@ void CApp_Parcial2::run()
 	{
 		// Create the Window 
 		// Note: The following create() method creates the Window itself. Do NOT make any OpenGL calls before this line, your app WILL crash.
-		if (getGameWindow()->create(CAPP_PROGRA3_EMPTYAPP_WINDOW_TITLE))
+		if (getGameWindow()->create(CAPP_PROGRA3_EMPTYAPP_WINDOW_TITLE, m_fullscreen))
 		{
 			initialize();
 
@@ -97,6 +98,16 @@ void CApp_Parcial2::update(double deltaTime)
 	// ===============================
 	//
 	// ===============================
+	deltaTime *= 0.001;
+
+	double degrees = m_rotationSpeed * deltaTime;
+	
+	m_currentRotation += degrees;
+
+	if (m_currentRotation > 360.0)
+	{
+		m_currentRotation -= 360.0;
+	}
 }
 
 /* */
@@ -113,15 +124,28 @@ void CApp_Parcial2::render()
 	}
 	else // Otherwise, render app-specific stuff here...
 	{
+		double currentDegreesRad = m_currentRotation * PI_OVER_180;
+
+
 		float color[3] = { 1.0f, 1.0f, 1.0f };
 
-		CVector3 position = CVector3::ZeroVector();
+		CVector3 position = m_currentPosition;
+		position.X -= 5.0f;
 
 		// convert total degrees rotated to radians;
 		//double totalDegreesRotatedRadians = m_objectRotation * 3.1459 / 180.0;
 
+		MathHelper::Matrix4 scale = MathHelper::ScaleMatrix(2.0f, 2.0f, 2.0f);
+
 		// Get a matrix that has both the object rotation and translation
-		MathHelper::Matrix4 modelMatrix = MathHelper::SimpleModelMatrixRotationTranslation((float)0.0, position);
+		MathHelper::Matrix4 rotationAndTranslation = MathHelper::SimpleModelMatrixRotationTranslation((float)currentDegreesRad, position);
+
+		MathHelper::Matrix4 modelMatrix2 = MathHelper::Multiply(rotationAndTranslation, scale);
+
+		MathHelper::Matrix4 translationMatrix = MathHelper::TranslationMatrix(m_currentPosition.X, m_currentPosition.Y, m_currentPosition.Z);
+		MathHelper::Matrix4 rotationMatrix = MathHelper::RotAroundX(currentDegreesRad);
+
+		MathHelper::Matrix4 modelMatrix = MathHelper::Multiply(rotationMatrix, translationMatrix);
 
 		unsigned int modelShader = m_shaderID;
 
@@ -137,6 +161,17 @@ void CApp_Parcial2::render()
 				m_numFacesInMtl[id.first],
 				color,
 				&modelMatrix,
+				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+				false
+			);
+
+			getOpenGLRenderer()->renderObject(
+				&modelShader,
+				&modelVAO,
+				&modelTexture,
+				m_numFacesInMtl[id.first],
+				color,
+				&modelMatrix2,
 				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
 				false
 			);
