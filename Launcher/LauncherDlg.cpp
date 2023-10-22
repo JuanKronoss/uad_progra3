@@ -168,6 +168,22 @@ void CLauncherDlg::OnPaint()
 	{
 		CDialogEx::OnPaint();
 	}
+
+	CStatic* pPCBox = (CStatic*)(GetDlgItem(ImageDlg));
+	CRect rect;
+	pPCBox->GetClientRect(rect);
+	CClientDC dc(pPCBox);
+	CImage image;
+	image.Load(L"seppuku.jpg");
+	CBitmap bitmap;
+	bitmap.Attach(image.Detach());
+	CDC memoryDC;
+	memoryDC.CreateCompatibleDC(&dc);
+	memoryDC.SelectObject(bitmap);
+	BITMAP bmp;
+	bitmap.GetBitmap(&bmp);
+	dc.SetStretchBltMode(COLORONCOLOR);
+	dc.StretchBlt(rect.left, rect.top, rect.Width(), rect.Height(), &memoryDC, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
