@@ -232,7 +232,7 @@ void CApp_Parcial1::onF2(int mods)
 				m_shaderID = getOpenGLRenderer()->getShaderProgramID(SHADER_PROGRAM_COLOR_OBJECT);
 			}
 
-			unordered_map<string, MaterialFaces*>* facesPerMaterial = m_3dObject.getFacesPerMateriel();
+			unordered_map<string, MaterialFaces*>* facesPerMaterial = m_3dObject.getFacesPerMaterial();
 
 			for (auto faces : *facesPerMaterial)
 			{
@@ -249,7 +249,8 @@ void CApp_Parcial1::onF2(int mods)
 				bool loadedToGraphicsCard;
 				unsigned int geometryID;
 
-				// Allocate graphics memory for object
+				// 
+				// ate graphics memory for object
 				loadedToGraphicsCard = getOpenGLRenderer()->allocateGraphicsMemoryForObject(
 					&m_shaderID,
 					&geometryID,

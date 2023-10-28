@@ -3,7 +3,7 @@
 		"numCols"     : 12,
 		"numRows"     : 12,
 		"cellSize"    : 1.75,
-		"orientation" : "pointy"
+		"orientation" : "flat"
 	},
 	"Models" : [
 		{

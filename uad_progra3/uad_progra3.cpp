@@ -18,8 +18,8 @@ int main(int argc, char** argv)
 {
 	CApp *app = NULL;					// Pointer to BASE class CApp
 
-	int width = 800;
-	int height = 600;
+	int width = 1200;
+	int height = 720;
 
 	if (argc >= 5)
 	{

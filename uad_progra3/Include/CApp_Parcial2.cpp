@@ -59,8 +59,9 @@ void CApp_Parcial2::initialize()
 	//
 	// ==================================
 
-
-
+	m_myWorld.loadWorld(m_jsonGridFile);
+	m_myWorld.m_OpenGLRenderer = getOpenGLRenderer();
+	m_myWorld.allocateGraphicMemory();
 }
 
 /* */
@@ -113,6 +114,9 @@ void CApp_Parcial2::update(double deltaTime)
 /* */
 void CApp_Parcial2::render()
 {
+	m_myWorld.render();
+
+
 	CGameMenu* menu = getMenu();
 
 	// If menu is active, render menu
@@ -165,16 +169,16 @@ void CApp_Parcial2::render()
 				false
 			);
 
-			getOpenGLRenderer()->renderObject(
-				&modelShader,
-				&modelVAO,
-				&modelTexture,
-				m_numFacesInMtl[id.first],
-				color,
-				&modelMatrix2,
-				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
-				false
-			);
+			//getOpenGLRenderer()->renderObject(
+			//	&modelShader,
+			//	&modelVAO,
+			//	&modelTexture,
+			//	m_numFacesInMtl[id.first],
+			//	color,
+			//	&modelMatrix2,
+			//	COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+			//	false
+			//);
 		}
 
 
@@ -267,7 +271,7 @@ void CApp_Parcial2::onF2(int mods)
 				m_shaderID = getOpenGLRenderer()->getShaderProgramID(SHADER_PROGRAM_COLOR_OBJECT);
 			}
 
-			unordered_map<string, MaterialFaces*>* facesPerMaterial = m_3dObject.getFacesPerMateriel();
+			unordered_map<string, MaterialFaces*>* facesPerMaterial = m_3dObject.getFacesPerMaterial();
 
 			for (auto faces : *facesPerMaterial)
 			{

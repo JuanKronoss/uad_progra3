@@ -7,6 +7,7 @@
 #include "Globals.h"
 #include "CApp.h"
 #include "C3DObj.h"
+#include "World.h"
 
 // --------------------------------------------------------------------------------------------------------------------------------------
 // Class that inherits from Base class CApp
@@ -21,6 +22,10 @@ private:
 	// ---------------------------------------------------
 	//
 	// ---------------------------------------------------
+	World m_myWorld;
+	string m_jsonGridFile = "Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json";
+	
+	
 	C3DObj m_3dObject;
 
 	unsigned int m_shaderID;

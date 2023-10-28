@@ -171,6 +171,12 @@
     <ClInclude Include="Include\CApp_Parcial2.h">
       <Filter>Header Files\Parcial2</Filter>
     </ClInclude>
+    <ClInclude Include="Include\World.h">
+      <Filter>Header Files\Parcial2</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hex.h">
+      <Filter>Header Files\Parcial2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -246,6 +252,12 @@
       <Filter>Source Files\Parcial1</Filter>
     </ClCompile>
     <ClCompile Include="Include\CApp_Parcial2.cpp">
+      <Filter>Source Files\Parcial2</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\World.cpp">
+      <Filter>Source Files\Parcial2</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Hex.cpp">
       <Filter>Source Files\Parcial2</Filter>
     </ClCompile>
   </ItemGroup>

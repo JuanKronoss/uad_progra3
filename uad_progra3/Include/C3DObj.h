@@ -33,7 +33,7 @@ public:
 	vector<float>* getTextureCoords() { return &m_textureCoords; }
 
 	unordered_map<string, string>* getMaterialFiles() { return &m_materialFiles; }
-	unordered_map<string, MaterialFaces*>* getFacesPerMateriel() { return &m_facesPerMaterial; }
+	unordered_map<string, MaterialFaces*>* getFacesPerMaterial() { return &m_facesPerMaterial; }
 	
 	bool hasUVs() { return m_hasUVs; }
 	bool hasTextures() { return m_hasTextures; }
