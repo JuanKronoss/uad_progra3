@@ -31,7 +31,7 @@ World::~World()
 }
 
 void World::loadWorld(string jsonGridFile, string mediaDirectory)
-{
+{	
 	ifstream gridFile(jsonGridFile);
 
 	if (!gridFile)

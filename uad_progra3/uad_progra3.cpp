@@ -24,9 +24,11 @@ int main(int argc, char** argv)
 	//char projectName[] = "uad_progra3";
 	string projectName("uad_progra3");
 	string resourcesDirectory("\\Resources\\MEDIA\\");
+	string jsonPath("\\Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json");
 
 	string currentDirectory;
 	string mediaDirectory;
+	string jsonFilePath;
 
 
 	istringstream completePath{ path };
@@ -37,9 +39,14 @@ int main(int argc, char** argv)
 		mediaDirectory += currentDirectory;
 		mediaDirectory += "\\";
 
+		jsonFilePath += currentDirectory;
+		jsonFilePath += "\\";
 	}
 	mediaDirectory += projectName;
 	mediaDirectory += resourcesDirectory;
+
+	jsonFilePath += projectName;
+	jsonFilePath += jsonPath;
 
 	int width = 1200;
 	int height = 720;
@@ -54,7 +61,7 @@ int main(int argc, char** argv)
 		cout << "\nInstantiating " << instantiateClass << "(" << width << ", " << height << ")" << " by command line.\n\n";
 		if (instantiateClass == "CApp_Parcial2")
 		{
-			app = new CApp_Parcial2(width, height, mediaDirectory);
+			app = new CApp_Parcial2(width, height, jsonFilePath, mediaDirectory);
 		}
 		else if (instantiateClass == "CApp_Parcial1")
 		{
@@ -70,7 +77,7 @@ int main(int argc, char** argv)
 	{
 		//app = new CAppEmpty(800, 600);		// Using pointer to base class, create a new object of DERIVED class
 		cout << "\nInstantiating CApp_Parcial2(" << width << ", " << height << ")" << " by default.\n\n";
-		app = new CApp_Parcial2(width, height, mediaDirectory);
+		app = new CApp_Parcial2(width, height, jsonFilePath, mediaDirectory);
 	}
 	app->run();							// Run the app
 	delete app;							// Delete pointer

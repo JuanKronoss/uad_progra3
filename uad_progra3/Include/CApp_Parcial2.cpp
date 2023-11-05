@@ -18,8 +18,8 @@ CApp_Parcial2::CApp_Parcial2() :
 }
 
 /* */
-CApp_Parcial2::CApp_Parcial2(int window_width, int window_height, string media_directory) :
-	CApp(window_width, window_height), m_mediaDirectory(media_directory)
+CApp_Parcial2::CApp_Parcial2(int window_width, int window_height, string jsonPath, string media_directory) :
+	CApp(window_width, window_height), m_jsonGridFile(jsonPath), m_mediaDirectory(media_directory)
 {
 	cout << "Constructor: CApp_Parcial2(int window_width, int window_height)" << endl;
 
