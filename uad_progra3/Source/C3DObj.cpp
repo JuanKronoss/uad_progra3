@@ -22,6 +22,25 @@ bool C3DObj::readObjFile(const char* obj_file)
 	ifstream objFile;
 	objFile.open(obj_file);
 
+	string modelsDirectory("MODELS");
+
+	string currentDirectory;
+	string thisModelDirectory;
+
+	istringstream completePath{ obj_file };
+
+	while (currentDirectory != modelsDirectory)
+	{
+		getline(completePath, currentDirectory, '\\');
+		thisModelDirectory += currentDirectory;
+		thisModelDirectory += "\\";
+
+	}
+	getline(completePath, currentDirectory, '\\');
+	thisModelDirectory += currentDirectory;
+	thisModelDirectory += "\\";
+
+
 	string currentLine;
 	string currentMaterial;
 
@@ -55,7 +74,7 @@ bool C3DObj::readObjFile(const char* obj_file)
 		}
 		else if (token == materialLibrary)
 		{
-			readMtlLib(currentLine);
+			readMtlLib(currentLine, thisModelDirectory);
 		}
 		else if (token == materialUse)
 		{
@@ -153,7 +172,7 @@ void C3DObj::readTextureCoords(const string line)
 }
 
 
-void C3DObj::readMtlLib(const string line)
+void C3DObj::readMtlLib(const string line, string directory)
 {
 	string parameter;
 	string fileName;
@@ -161,6 +180,8 @@ void C3DObj::readMtlLib(const string line)
 	istringstream materialLine{ line };
 
 	materialLine >> parameter >> fileName;
+
+	fileName = directory + fileName;
 
 	readTGA(fileName);
 }
@@ -183,7 +204,6 @@ void C3DObj::readTGA(const string file)
 		string data;
 		istringstream analyseLine{ currentLine };
 		analyseLine >> token >> data;
-
 
 		if (token == "newmtl")
 		{
@@ -497,4 +517,10 @@ void C3DObj::readFaces(const string line, string material)
 	{
 		m_parametersLoaded.push_back(parameter);
 	}
+}
+
+void C3DObj::clear()
+{
+	m_facesPerMaterial.clear();
+
 }

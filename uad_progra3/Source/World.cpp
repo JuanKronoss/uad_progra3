@@ -1,4 +1,5 @@
 //#include "../stdafx.h"
+#include "../Include/CTextureLoader.h"
 #include "../Include/World.h"
 #include "../Include/Globals.h"
 //#include "../Include/CApp.h"
@@ -12,12 +13,27 @@ World::~World()
 {
 	m_OpenGLRenderer->freeGraphicsMemoryForObject(&GridProperties.BaseHex.geometryID);
 
+	for (auto& model : m_modelsLoaded)
+	{
+		for (auto& id : model.second.textureIDMap)
+		{
+			m_OpenGLRenderer->deleteTexture(&id.second);
+		}
+	}
+
+	for (auto& model : m_modelsLoaded)
+	{
+		for (auto& id : model.second.geometryIDMap)
+		{
+			m_OpenGLRenderer->freeGraphicsMemoryForObject(&id.second);
+		}
+	}
 }
 
-void World::loadWorld(string jsonGridFile)
+void World::loadWorld(string jsonGridFile, string mediaDirectory)
 {
-	//ifstream gridFile(jsonGridFile);
-	ifstream gridFile("Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json");
+	ifstream gridFile(jsonGridFile);
+
 	if (!gridFile)
 	{
 		cout << endl << "Failed to load json file!" << endl;
@@ -26,11 +42,14 @@ void World::loadWorld(string jsonGridFile)
 
 	json data = json::parse(gridFile);
 
-	//"numCols"     : 12,
-	//"numRows"     : 12,
-	//"cellSize"    : 1.75,
-	//"orientation" : "pointy"
+	loadGridProperties(data);
+	loadHexGrid();
+	loadModels(data, mediaDirectory);
+	loadModelInstances(data);
+}
 
+void World::loadGridProperties(json& data)
+{
 	auto hexgrid = data["HexGrid"];
 
 	GridProperties.numCols = hexgrid["numCols"];
@@ -50,10 +69,7 @@ void World::loadWorld(string jsonGridFile)
 		GridProperties.verticalSpacing = GridProperties.cellSize * sqrt(3);
 	}
 
-	loadHexGrid();
-	//void loadModels();
-	//void loadModelInstances();
-	//allocateGraphicMemory();
+
 }
 
 void World::loadHexGrid()
@@ -116,6 +132,7 @@ void World::oddR()
 
 			Hex gridHex;
 
+			gridHex.m_orientation = GridProperties.orientation;
 			gridHex.m_center = cellCenter;
 			gridHex.m_column = column;
 			gridHex.m_row = row;
@@ -193,7 +210,6 @@ void World::BaseHexVrtx(CVector3 cellCenter, float cellSize, int numVertex)
 	float angleRad = PI / 180 * angleDeg;
 
 	Point vertex(cellCenter.X + cellSize * cos(angleRad), CVector3::ZeroVector().Y, cellCenter.Z + cellSize * sin(angleRad));
-	//Point vertex(cellCenter.X + cellSize * cos(angleRad), cellCenter.Z + cellSize * sin(angleRad), 0.0f);
 
 	GridProperties.BaseHex.vertices.push_back(vertex.X);
 	GridProperties.BaseHex.vertices.push_back(vertex.Y);
@@ -226,9 +242,82 @@ void World::BaseHexFaces()
 
 
 
+void World::loadModels(json& data, string mediaDirectory)
+{
+	for (auto& model : data["Models"])
+	{
+		string objName = model["name"];
+		string fileName = model["filename"];
+		string objPath(mediaDirectory + fileName);
+
+		m_modelsPath[objName] = objPath;
+	}
+
+	//loadModelInstances(data);
+}
+
+void World::loadModelInstances(json& data)
+{
+	for (auto& instance : data["ModelInstances"])
+	{
+		ModelInstance model;
+
+		string modelName = instance["model"];
+		model.m_modelName = modelName;
+
+		if (model.m_modelName == "Rock_3")
+		{
+			model.m_color[0] = 0.0f;
+			model.m_color[1] = 0.0f;
+			model.m_color[2] = 0.0f;
+		}
+
+		model.m_row = instance["row"];
+		model.m_column = instance["column"];
+		model.m_scale = instance["scale"];
+
+		vector<float> rotation = instance["rotation"];
+		model.m_rotation.X = rotation[0];
+		model.m_rotation.Y = rotation[1];
+		model.m_rotation.Z = rotation[2];
+
+		for (Hex& hex : m_hexes)
+		{
+
+			if (hex.m_row == model.m_row &&
+				hex.m_column == model.m_column)
+			{
+				model.m_center = hex.m_center;
+
+				MathHelper::Matrix4 modelMatrixRotation = MathHelper::RotAroundX(model.m_rotation.X);
+									modelMatrixRotation = MathHelper::RotAroundY(model.m_rotation.Y);
+									modelMatrixRotation = MathHelper::RotAroundZ(model.m_rotation.Z);
+
+				MathHelper::Matrix4 modelMatrixTranslation = MathHelper::TranslationMatrix(model.m_center.X, model.m_center.Y, model.m_center.Z);
+				MathHelper::Matrix4 modelMatrixScale = MathHelper::ScaleMatrix(model.m_scale, model.m_scale, model.m_scale);
+
+				MathHelper::Matrix4 modelMatrixRotScale = MathHelper::Multiply(modelMatrixRotation, modelMatrixScale);
+
+				MathHelper::Matrix4 modelMatrix = MathHelper::Multiply(modelMatrixRotScale, modelMatrixTranslation);
+
+				model.m_modelMatrix = modelMatrix;
+				m_modelInstances.push_back(model);
+			}
+		}
+	}
+}
+
+
+
 void World::allocateGraphicMemory()
 {
 	allocateHex();
+
+	for (auto& model : m_modelsPath)
+	{
+		allocateModels(model.first, model.second);
+
+	}
 }
 
 void World::allocateHex()
@@ -269,12 +358,113 @@ void World::allocateHex()
 }
 
 
+void World::allocateModels(string model_name, string obj_file)
+{
+	C3DObj objReader;
+	
+	if (!objReader.readObjFile(obj_file.c_str()))
+	{
+		cout << "\a\nUnable to load 3D model\n";
+	}
+	else
+	{
+		if (objReader.hasUVs() && objReader.hasTextures())
+		{
+			unordered_map<string, string>* materialFiles = objReader.getMaterialFiles();
+
+			// Switch shaders to textured object ones
+			Model.shaderID = m_OpenGLRenderer->getShaderProgramID(SHADER_PROGRAM_TEXTURED_OBJECT);
+
+			for (auto& file : *materialFiles)
+			{
+				unsigned int newTextureID;
+
+				// LOAD TEXTURE AND ALSO CREATE TEXTURE OBJECT
+				if (CTextureLoader::loadTexture(file.second.c_str(), &newTextureID, m_OpenGLRenderer))
+				{
+					Model.textureIDMap[file.first] = newTextureID;
+				}
+				else
+				{
+					// Texture could not be loaded, default back to color shader
+					Model.shaderID = m_OpenGLRenderer->getShaderProgramID(SHADER_PROGRAM_COLOR_OBJECT);
+				}
+			}
+
+		}
+		else
+		{
+			// Load color shader
+			Model.shaderID = m_OpenGLRenderer->getShaderProgramID(SHADER_PROGRAM_COLOR_OBJECT);
+		}
+
+		unordered_map<string, MaterialFaces*>* facesPerMaterial = objReader.getFacesPerMaterial();
+
+		for (auto& faces : *facesPerMaterial)
+		{
+			vector<unsigned short> verticesIdx;
+			vector<unsigned short> normalsIdx;
+			vector<unsigned short> texturesIdx;
+
+			MaterialFaces* currentFaces = faces.second;
+
+			verticesIdx = currentFaces->getFacesVerticesIdx();
+			normalsIdx = currentFaces->getFacesNormalsIdx();
+			texturesIdx = currentFaces->getFacesTexturesIdx();
+
+			bool loadedToGraphicsCard;
+			unsigned int geometryID;
+
+			// Allocate graphics memory for object
+			loadedToGraphicsCard = m_OpenGLRenderer->allocateGraphicsMemoryForObject(
+				&Model.shaderID,
+				&geometryID,
+				objReader.getVertices()->data(),
+				objReader.getVertices()->size() / 3,
+				objReader.getNormals()->data(),
+				objReader.getNormals()->size() / 3,
+				objReader.getTextureCoords()->data(),
+				objReader.getTextureCoords()->size() / 2,
+				verticesIdx.data(),
+				verticesIdx.size() / 3,
+				normalsIdx.data(),
+				normalsIdx.size() / 3,
+				texturesIdx.data(),
+				texturesIdx.size() / 3
+			);
+
+			if (!loadedToGraphicsCard)
+			{
+				cout << "\a\nUnable to allocate graphic memory!\n";
+			}
+			else
+			{
+				Model.geometryIDMap[faces.first] = geometryID;
+				
+				Model.numFacesInMtl[faces.first] = verticesIdx.size() / 3;
+			}
+		}
+		
+		m_modelsLoaded[model_name] = Model;
+		
+		Model.geometryIDMap.clear();
+		Model.numFacesInMtl.clear();
+	}
+}
+
 
 void World::render()
 {
-	float color[3] = { 1.0f, 1.0f, 1.0f };
+	renderHexGrid();
+	renderModelInstances();
+}
 
-	for (auto hex : m_hexes)
+
+void World::renderHexGrid()
+{
+	float color[3] = { 0.0f, 2.0f, 0.0f };
+
+	for (auto& hex : m_hexes)
 	{
 		unsigned int modelTexture = 0;
 
@@ -288,5 +478,30 @@ void World::render()
 			COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
 			false
 		);
+	}
+}
+
+void World::renderModelInstances()
+{
+	for (auto& model : m_modelInstances)
+	{
+		string modelName = model.m_modelName;
+
+		for (auto& id : m_modelsLoaded[modelName].geometryIDMap)
+		{
+			unsigned int modelVAO = id.second;
+			unsigned int modelTexture = m_modelsLoaded[modelName].textureIDMap[id.first];
+
+			m_OpenGLRenderer->renderObject(
+				&m_modelsLoaded[modelName].shaderID,
+				&modelVAO,
+				&modelTexture,
+				m_modelsLoaded[modelName].numFacesInMtl[id.first],
+				model.m_color,
+				&model.m_modelMatrix,
+				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+				false
+			);
+		}
 	}
 }

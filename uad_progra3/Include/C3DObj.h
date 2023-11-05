@@ -23,8 +23,9 @@ public:
 	void readNormals(const string line);
 	void readTextureCoords(const string line);
 	void readTGA(const string line);
-	void readMtlLib(const string file);
+	void readMtlLib(const string file, string directory);
 	void readFaces(const string line, string material);
+	void clear();
 
 	bool isModelLoaded() { return m_modelLoaded; }
 
@@ -34,7 +35,7 @@ public:
 
 	unordered_map<string, string>* getMaterialFiles() { return &m_materialFiles; }
 	unordered_map<string, MaterialFaces*>* getFacesPerMaterial() { return &m_facesPerMaterial; }
-	
+
 	bool hasUVs() { return m_hasUVs; }
 	bool hasTextures() { return m_hasTextures; }
 

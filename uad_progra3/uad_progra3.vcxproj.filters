@@ -177,6 +177,9 @@
     <ClInclude Include="Include\Hex.h">
       <Filter>Header Files\Parcial2</Filter>
     </ClInclude>
+    <ClInclude Include="Include\ModelInstance.h">
+      <Filter>Header Files\Parcial2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

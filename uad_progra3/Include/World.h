@@ -2,8 +2,9 @@
 #include "../Dependencies/JSON/nlohmann/json.hpp"
 #include "COpenGLRenderer.h"
 #include "CVector3.h"
-#include "Hex.h"
 #include "C3DObj.h"
+#include "Hex.h"
+#include "ModelInstance.h"
 
 #include <unordered_map>
 #include <vector>
@@ -24,8 +25,21 @@ public:
 
 	World() = default;
 	~World();
-	
+
 	vector<Hex> m_hexes;
+	vector<ModelInstance> m_modelInstances;
+
+	struct MODEL
+	{
+		unsigned int shaderID;
+		unordered_map<string, unsigned int> textureIDMap;
+		unordered_map<string, unsigned int> geometryIDMap;
+		unordered_map<string, unsigned int> numFacesInMtl;
+
+	}Model;
+
+	unordered_map<string, string> m_modelsPath;		//Model name and .obj path
+	unordered_map<string, MODEL> m_modelsLoaded;	//Model name and its data
 
 	struct Face
 	{
@@ -54,12 +68,8 @@ public:
 			vector<float> UVs;
 
 			Face faces;
-
-			//vector<unsigned short> faceVerticesIdx;
-			//vector<unsigned short> faceTexturesIdx;
-			//vector<unsigned short> faceNormalsIdx;
-
 			unordered_map<string, MaterialFaces*> facesPerMaterial;
+
 		}BaseHex;
 
 	}GridProperties;
@@ -67,7 +77,8 @@ public:
 	//Models
 	//ModelInstances
 
-	void loadWorld(string jsonGridFile);
+	void loadWorld(string jsonGridFile, string mediaDirectory);
+	void loadGridProperties(json& data);
 	void loadHexGrid();
 	void loadBaseHex();
 	void oddR();
@@ -76,12 +87,16 @@ public:
 	void BaseHexNormals();
 	void BaseHexUVs();
 	void BaseHexFaces();
-	//void loadModels();
-	//void loadModelInstances();
+	void loadModels(json& data, string mediaDirectory);
+	void loadModelInstances(json& data);
 
 	void allocateGraphicMemory();
 	void allocateHex();
+	void allocateModels(string model_name, string obj_file);
+
 	void render();
+	void renderHexGrid();
+	void renderModelInstances();
 
 	COpenGLRenderer* m_OpenGLRenderer; // Pointer to our OpenGL renderer object
 };

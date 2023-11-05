@@ -24,7 +24,7 @@ private:
 	// ---------------------------------------------------
 	World m_myWorld;
 	string m_jsonGridFile = "Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json";
-	
+	string m_mediaDirectory;
 	
 	C3DObj m_3dObject;
 
@@ -46,7 +46,7 @@ protected:
 public:
 	// Constructors and destructor
 	CApp_Parcial2();
-	CApp_Parcial2(int window_width, int window_height);
+	CApp_Parcial2(int window_width, int window_height, string media_directory);
 	~CApp_Parcial2();
 
 	// --------------------------------------------------------------------------------------------------------------------------

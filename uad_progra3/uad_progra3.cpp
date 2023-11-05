@@ -18,10 +18,33 @@ int main(int argc, char** argv)
 {
 	CApp *app = NULL;					// Pointer to BASE class CApp
 
+	int argumentsNeeded = 5;
+
+	string path(argv[0]);
+	//char projectName[] = "uad_progra3";
+	string projectName("uad_progra3");
+	string resourcesDirectory("\\Resources\\MEDIA\\");
+
+	string currentDirectory;
+	string mediaDirectory;
+
+
+	istringstream completePath{ path };
+
+	while (currentDirectory != projectName)
+	{
+		getline(completePath, currentDirectory, '\\');
+		mediaDirectory += currentDirectory;
+		mediaDirectory += "\\";
+
+	}
+	mediaDirectory += projectName;
+	mediaDirectory += resourcesDirectory;
+
 	int width = 1200;
 	int height = 720;
 
-	if (argc >= 5)
+	if (argc >= argumentsNeeded)
 	{
 		width = atoi(argv[1]);
 		height = atoi(argv[2]);
@@ -31,7 +54,7 @@ int main(int argc, char** argv)
 		cout << "\nInstantiating " << instantiateClass << "(" << width << ", " << height << ")" << " by command line.\n\n";
 		if (instantiateClass == "CApp_Parcial2")
 		{
-			app = new CApp_Parcial2(width, height);
+			app = new CApp_Parcial2(width, height, mediaDirectory);
 		}
 		else if (instantiateClass == "CApp_Parcial1")
 		{
@@ -47,7 +70,7 @@ int main(int argc, char** argv)
 	{
 		//app = new CAppEmpty(800, 600);		// Using pointer to base class, create a new object of DERIVED class
 		cout << "\nInstantiating CApp_Parcial2(" << width << ", " << height << ")" << " by default.\n\n";
-		app = new CApp_Parcial2(width, height);
+		app = new CApp_Parcial2(width, height, mediaDirectory);
 	}
 	app->run();							// Run the app
 	delete app;							// Delete pointer

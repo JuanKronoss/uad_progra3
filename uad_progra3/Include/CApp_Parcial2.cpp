@@ -13,13 +13,13 @@ using namespace std;
 
 /* */
 CApp_Parcial2::CApp_Parcial2() :
-	CApp_Parcial2(CGameWindow::DEFAULT_WINDOW_WIDTH, CGameWindow::DEFAULT_WINDOW_HEIGHT)
+	CApp(CGameWindow::DEFAULT_WINDOW_WIDTH, CGameWindow::DEFAULT_WINDOW_HEIGHT)
 {
 }
 
 /* */
-CApp_Parcial2::CApp_Parcial2(int window_width, int window_height) :
-	CApp(window_width, window_height)
+CApp_Parcial2::CApp_Parcial2(int window_width, int window_height, string media_directory) :
+	CApp(window_width, window_height), m_mediaDirectory(media_directory)
 {
 	cout << "Constructor: CApp_Parcial2(int window_width, int window_height)" << endl;
 
@@ -59,7 +59,7 @@ void CApp_Parcial2::initialize()
 	//
 	// ==================================
 
-	m_myWorld.loadWorld(m_jsonGridFile);
+	m_myWorld.loadWorld(m_jsonGridFile, m_mediaDirectory);
 	m_myWorld.m_OpenGLRenderer = getOpenGLRenderer();
 	m_myWorld.allocateGraphicMemory();
 }

@@ -3,10 +3,10 @@
 #include "../Include/CVector3.h"
 #include "../Include/MathHelper.h"
 
-#include <vector>
+//#include <vector>
 #include <string>
 
-using std::vector;
+//using std::vector;
 using std::string;
 
 class Hex
@@ -15,7 +15,7 @@ public:
 	Hex() = default;
 	~Hex() = default;
 
-	//string m_orientation = "pointy";
+	string m_orientation;
 
 	CVector3 m_center = CVector3::ZeroVector();
 	unsigned int m_row;
