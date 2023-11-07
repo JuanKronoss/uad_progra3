@@ -23,8 +23,8 @@ int main(int argc, char** argv)
 	string path(argv[0]);
 	//char projectName[] = "uad_progra3";
 	string projectName("uad_progra3");
-	string resourcesDirectory("\\Resources\\MEDIA\\");
-	string jsonPath("\\Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json");
+	string resourcesDirectory("Resources\\MEDIA\\");
+	string jsonPath("Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json");
 
 	string currentDirectory;
 	string mediaDirectory;
@@ -42,10 +42,8 @@ int main(int argc, char** argv)
 		jsonFilePath += currentDirectory;
 		jsonFilePath += "\\";
 	}
-	mediaDirectory += projectName;
 	mediaDirectory += resourcesDirectory;
 
-	jsonFilePath += projectName;
 	jsonFilePath += jsonPath;
 
 	int width = 1200;
