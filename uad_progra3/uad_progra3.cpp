@@ -21,15 +21,14 @@ int main(int argc, char** argv)
 	int argumentsNeeded = 5;
 
 	string path(argv[0]);
-	//char projectName[] = "uad_progra3";
 	string projectName("uad_progra3");
 	string resourcesDirectory("Resources\\MEDIA\\");
 	string jsonPath("Resources\\MEDIA\\HEXGRID\\hexgrid_cfg.json");
 
 	string currentDirectory;
+	string checkProject;;
 	string mediaDirectory;
 	string jsonFilePath;
-
 
 	istringstream completePath{ path };
 
@@ -42,8 +41,16 @@ int main(int argc, char** argv)
 		jsonFilePath += currentDirectory;
 		jsonFilePath += "\\";
 	}
-	mediaDirectory += resourcesDirectory;
+	//Check if the project name is the same as repository's
+	getline(completePath, checkProject, '\\');
 
+	if (currentDirectory == checkProject)
+	{
+		mediaDirectory += projectName + "\\";
+		jsonFilePath += projectName + "\\";
+	}
+	
+	mediaDirectory += resourcesDirectory;
 	jsonFilePath += jsonPath;
 
 	int width = 1200;
