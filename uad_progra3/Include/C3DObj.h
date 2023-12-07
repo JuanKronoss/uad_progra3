@@ -53,6 +53,7 @@ private:
 
 	MaterialFaces* m_currentMaterial;
 
+	unsigned int  m_numFaces = 0;
 	unordered_map<string, MaterialFaces*> m_facesPerMaterial;
 
 	bool m_hasUVs = true;

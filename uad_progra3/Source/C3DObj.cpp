@@ -512,7 +512,7 @@ void C3DObj::readFaces(const string line, string material)
 
 	cout << "\n";*/
 
-
+	++m_numFaces;
 	if (find(m_parametersLoaded.begin(), m_parametersLoaded.end(), parameter) == m_parametersLoaded.end())
 	{
 		m_parametersLoaded.push_back(parameter);

@@ -18,8 +18,4 @@ public:
 	vector<unsigned short> m_facesVerticesIdx;
 	vector<unsigned short> m_facesTexturesIdx;
 	vector<unsigned short> m_facesNormalsIdx;
-
-private:
-
-
 };

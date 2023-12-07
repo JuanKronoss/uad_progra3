@@ -153,7 +153,7 @@ namespace MathHelper
 		Matrix4 rZ(
 			cosine, -sine,   0.0f, 0.0f,
 			sine,    cosine, 0.0f, 0.0f,
-			0.0f,    0.0f,   0.0f, 0.0f,
+			0.0f,    0.0f,   1.0f, 0.0f,
 			0.0f,    0.0f,   0.0f, 1.0f);
 
 		return Transpose(rZ);

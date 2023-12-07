@@ -1,11 +1,12 @@
-//#include "../stdafx.h"
+#include "../stdafx.h"
 #include "../Include/CTextureLoader.h"
-#include "../Include/World.h"
 #include "../Include/Globals.h"
-//#include "../Include/CApp.h"
-//#include "../Include/C3DObj.h"
-#include "../Include//MathHelper.h"
+#include "../Include/MathHelper.h"
+#include "../Include/World.h"
+#include "../Include/Quadtree.h"
+
 #include <iostream>
+
 using std::cout;
 using std::endl;
 
@@ -28,6 +29,36 @@ World::~World()
 			m_OpenGLRenderer->freeGraphicsMemoryForObject(&id.second);
 		}
 	}
+
+	for (auto& hex : m_hexes)
+	{
+		if (hex.m_modelInstance != nullptr)
+		{
+			delete hex.m_modelInstance;
+			hex.m_modelInstance = nullptr;
+		}
+	}
+
+	if (m_camera != nullptr)
+	{
+		delete m_camera;
+		m_camera = nullptr;
+	}
+
+	if (m_quadtree != nullptr)
+	{
+		delete m_quadtree;
+		m_quadtree = nullptr;
+	}
+}
+
+void World::initializeWorld(int width, int height)
+{
+	CVector3 eyePos{ 0.0f, 15.0f, 25.0f };
+	CVector3 lookAtPos{ 0.0f, 0.0f, -20.0f };
+	CVector3 upVector{ 0.0f, 1.0f, 0.0f };
+
+	m_camera = new Camera(width, height, 75.0f, 0.001f, 1000.0f, eyePos, lookAtPos, upVector);
 }
 
 void World::loadWorld(string jsonGridFile, string mediaDirectory)
@@ -50,7 +81,7 @@ void World::loadWorld(string jsonGridFile, string mediaDirectory)
 
 void World::loadGridProperties(json& data)
 {
-	auto hexgrid = data["HexGrid"];
+	auto& hexgrid = data["HexGrid"];
 
 	GridProperties.numCols = hexgrid["numCols"];
 	GridProperties.numRows = hexgrid["numRows"];
@@ -93,7 +124,10 @@ void World::loadBaseHex()
 
 	for (int v = 0; v < 6; ++v)
 	{
-		BaseHexVrtx(cellCenter, GridProperties.cellSize, v);
+		Point vertex = BaseHexVrtx(cellCenter, GridProperties.cellSize, v, GridProperties.orientation);
+		GridProperties.BaseHex.vertices.push_back(vertex.X);
+		GridProperties.BaseHex.vertices.push_back(vertex.Y);
+		GridProperties.BaseHex.vertices.push_back(vertex.Z);
 	}
 	BaseHexNormals();
 	BaseHexUVs();
@@ -134,9 +168,16 @@ void World::oddR()
 
 			gridHex.m_orientation = GridProperties.orientation;
 			gridHex.m_center = cellCenter;
+			gridHex.m_size = GridProperties.cellSize;
+			gridHex.m_numFaces = GridProperties.BaseHex.faces.faceVerticesIdx.size() / 3;
 			gridHex.m_column = column;
 			gridHex.m_row = row;
 			gridHex.m_modelMatrix = modelMatrix;
+			for (int v = 0; v < 6; ++v)
+			{
+				Point vertex = BaseHexVrtx(gridHex.m_center, gridHex.m_size, v, gridHex.m_orientation);
+				gridHex.m_vertices.push_back(vertex);
+			}
 
 			m_hexes.push_back(gridHex);
 		}
@@ -179,10 +220,18 @@ void World::oddQ()
 
 			Hex gridHex;
 
+			gridHex.m_orientation = GridProperties.orientation;
 			gridHex.m_center = cellCenter;
+			gridHex.m_size = GridProperties.cellSize;
+			gridHex.m_numFaces = GridProperties.BaseHex.faces.faceVerticesIdx.size() / 3;
 			gridHex.m_column = column;
 			gridHex.m_row = row;
 			gridHex.m_modelMatrix = modelMatrix;
+			for (int v = 0; v < 6; ++v)
+			{
+				Point vertex = BaseHexVrtx(gridHex.m_center, gridHex.m_size, v, gridHex.m_orientation);
+				gridHex.m_vertices.push_back(vertex);
+			}
 
 			m_hexes.push_back(gridHex);
 
@@ -192,16 +241,16 @@ void World::oddQ()
 	}
 }
 
-void World::BaseHexVrtx(CVector3 cellCenter, float cellSize, int numVertex)
+Point World::BaseHexVrtx(CVector3 cellCenter, float cellSize, int numVertex, string orientation)
 {
 	float PI = std::acos(-1);
 	float angle = 30.0f;
 
-	if (GridProperties.orientation == "pointy")
+	if (orientation == "pointy")
 	{
 		angle = 30.0f;
 	}
-	else if (GridProperties.orientation == "flat")
+	else if (orientation == "flat")
 	{
 		angle = 0.0f;
 	}
@@ -211,9 +260,7 @@ void World::BaseHexVrtx(CVector3 cellCenter, float cellSize, int numVertex)
 
 	Point vertex(cellCenter.X + cellSize * cos(angleRad), CVector3::ZeroVector().Y, cellCenter.Z + cellSize * sin(angleRad));
 
-	GridProperties.BaseHex.vertices.push_back(vertex.X);
-	GridProperties.BaseHex.vertices.push_back(vertex.Y);
-	GridProperties.BaseHex.vertices.push_back(vertex.Z);
+	return vertex; 
 }
 
 void World::BaseHexNormals()
@@ -252,61 +299,70 @@ void World::loadModels(json& data, string mediaDirectory)
 
 		m_modelsPath[objName] = objPath;
 	}
-
-	//loadModelInstances(data);
 }
 
 void World::loadModelInstances(json& data)
 {
 	for (auto& instance : data["ModelInstances"])
 	{
-		ModelInstance model;
+		ModelInstance* model = new ModelInstance;
 
 		string modelName = instance["model"];
-		model.m_modelName = modelName;
+		model->m_modelName = modelName;
 
-		if (model.m_modelName == "Rock_3")
+		if (model->m_modelName == "Rock_3")
 		{
-			model.m_color[0] = 0.0f;
-			model.m_color[1] = 0.0f;
-			model.m_color[2] = 0.0f;
+			model->m_color[0] = 0.0f;
+			model->m_color[1] = 0.0f;
+			model->m_color[2] = 0.0f;
 		}
 
-		model.m_row = instance["row"];
-		model.m_column = instance["column"];
-		model.m_scale = instance["scale"];
+		model->m_row = instance["row"];
+		model->m_column = instance["column"];
+		model->m_scale = instance["scale"];
 
 		vector<float> rotation = instance["rotation"];
-		model.m_rotation.X = rotation[0];
-		model.m_rotation.Y = rotation[1];
-		model.m_rotation.Z = rotation[2];
+		model->m_rotation.X = rotation[0];
+		model->m_rotation.Y = rotation[1];
+		model->m_rotation.Z = rotation[2];
 
 		for (Hex& hex : m_hexes)
 		{
 
-			if (hex.m_row == model.m_row &&
-				hex.m_column == model.m_column)
+			if (hex.m_row == model->m_row &&
+				hex.m_column == model->m_column)
 			{
-				model.m_center = hex.m_center;
+				model->m_center = hex.m_center;
 
-				MathHelper::Matrix4 modelMatrixRotation = MathHelper::RotAroundX(model.m_rotation.X);
-									modelMatrixRotation = MathHelper::RotAroundY(model.m_rotation.Y);
-									modelMatrixRotation = MathHelper::RotAroundZ(model.m_rotation.Z);
+				MathHelper::Matrix4 modelMatrixRotation;
+				
+				if (model->m_rotation.X != 0.0f)
+				{
+					modelMatrixRotation = MathHelper::RotAroundX(model->m_rotation.X);
+				}
+				if (model->m_rotation.Y != 0.0f)
+				{
+					modelMatrixRotation = MathHelper::RotAroundY(model->m_rotation.Y);
+				}
+				if (model->m_rotation.Z != 0.0f)
+				{
+					modelMatrixRotation = MathHelper::RotAroundZ(model->m_rotation.Z);
+				}
 
-				MathHelper::Matrix4 modelMatrixTranslation = MathHelper::TranslationMatrix(model.m_center.X, model.m_center.Y, model.m_center.Z);
-				MathHelper::Matrix4 modelMatrixScale = MathHelper::ScaleMatrix(model.m_scale, model.m_scale, model.m_scale);
+				MathHelper::Matrix4 modelMatrixTranslation = MathHelper::TranslationMatrix(model->m_center.X, model->m_center.Y, model->m_center.Z);
+				MathHelper::Matrix4 modelMatrixScale = MathHelper::ScaleMatrix(model->m_scale, model->m_scale, model->m_scale);
 
 				MathHelper::Matrix4 modelMatrixRotScale = MathHelper::Multiply(modelMatrixRotation, modelMatrixScale);
 
 				MathHelper::Matrix4 modelMatrix = MathHelper::Multiply(modelMatrixRotScale, modelMatrixTranslation);
 
-				model.m_modelMatrix = modelMatrix;
+				model->m_modelMatrix = modelMatrix;
+				hex.m_modelInstance = model;
 				m_modelInstances.push_back(model);
 			}
 		}
 	}
 }
-
 
 
 void World::allocateGraphicMemory()
@@ -318,6 +374,8 @@ void World::allocateGraphicMemory()
 		allocateModels(model.first, model.second);
 
 	}
+
+	setNumFacesPerCell();
 }
 
 void World::allocateHex()
@@ -353,7 +411,7 @@ void World::allocateHex()
 	else
 	{
 		GridProperties.BaseHex.geometryID = geometryID;
-		GridProperties.BaseHex.numFaces = GridProperties.BaseHex.faces.faceVerticesIdx.size() / 3; 
+		GridProperties.BaseHex.numFaces = GridProperties.BaseHex.faces.faceVerticesIdx.size() / 3;
 	}
 }
 
@@ -447,16 +505,103 @@ void World::allocateModels(string model_name, string obj_file)
 		
 		m_modelsLoaded[model_name] = Model;
 		
+		for (auto& instance : m_modelInstances)
+		{
+			if (instance->m_modelName == model_name)
+			{
+				for (auto& material : Model.numFacesInMtl)
+				{
+					instance->m_numFaces += material.second;
+				}
+			}
+		}
+
 		Model.geometryIDMap.clear();
 		Model.numFacesInMtl.clear();
 	}
 }
 
 
+void World::setNumFacesPerCell()
+{
+	for (auto& cell : m_hexes)
+	{
+		cell.m_numTotalFaces += cell.m_numFaces;
+		
+		if (cell.m_modelInstance != nullptr)
+		{
+			cell.m_numTotalFaces += cell.m_modelInstance->m_numFaces;
+		}
+	}
+}
+
+
+void World::loadQuadtree()
+{
+	float leftmostX = 0.0f;
+	float rightmostX = 0.0f;
+	float uppermostZ = 0.0f;
+	float lowermostZ = 0.0f;
+
+	for (auto& hex : m_hexes)
+	{
+		for (auto& point : hex.m_vertices)
+		{
+			if (point.X <= leftmostX)
+			{
+				leftmostX = point.X;
+			}
+			if (point.X >= rightmostX)
+			{
+				rightmostX = point.X;
+			}
+			if (point.Z <= uppermostZ)
+			{
+				uppermostZ = point.Z;
+			}
+			if (point.Z >= lowermostZ)
+			{
+				lowermostZ = point.Z;
+			}
+		}
+	}
+
+	CVector3 boundingBoxRoot[4];
+
+	CVector3 topLeft{ leftmostX, 0.0f, uppermostZ };
+	CVector3 topRight{ rightmostX, 0.0f, uppermostZ };
+	CVector3 bottomLeft{ leftmostX, 0.0f, lowermostZ };
+	CVector3 bottomRight{ rightmostX, 0.0f, lowermostZ };
+
+	boundingBoxRoot[0] = topLeft;
+	boundingBoxRoot[1] = topRight;
+	boundingBoxRoot[2] = bottomLeft;
+	boundingBoxRoot[3] = bottomRight;
+
+	AABB_2D AABBroot;
+	AABBroot.setPoints(boundingBoxRoot);
+
+	unsigned int maxFaces = 1000;
+
+	m_quadtree = new Quadtree(AABBroot, maxFaces, &m_hexes);
+
+	cout << endl;
+}
+
+
 void World::render()
 {
-	renderHexGrid();
-	renderModelInstances();
+	m_quadtree->render(m_camera, m_visibleCells);
+
+	//if (m_visibleCells.size() == 0)
+	//{
+	//	renderHexGrid();
+	//	renderModelInstances();
+	//}
+	//else
+	//{
+		renderQuadNodes();
+	//}
 }
 
 
@@ -468,6 +613,9 @@ void World::renderHexGrid()
 	{
 		unsigned int modelTexture = 0;
 
+		MathHelper::Matrix4* viewMatrix = (MathHelper::Matrix4*)m_camera->getViewMatrix();
+		MathHelper::Matrix4* projectionMatrix = (MathHelper::Matrix4*)m_camera->getProjectionMatrix();
+
 		m_OpenGLRenderer->renderObject(
 			&GridProperties.BaseHex.shaderID,
 			&GridProperties.BaseHex.geometryID,
@@ -475,6 +623,8 @@ void World::renderHexGrid()
 			GridProperties.BaseHex.numFaces,
 			color,
 			&hex.m_modelMatrix,
+			viewMatrix,
+			projectionMatrix,
 			COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
 			false
 		);
@@ -485,23 +635,80 @@ void World::renderModelInstances()
 {
 	for (auto& model : m_modelInstances)
 	{
-		string modelName = model.m_modelName;
+		string modelName = model->m_modelName;
 
 		for (auto& id : m_modelsLoaded[modelName].geometryIDMap)
 		{
 			unsigned int modelVAO = id.second;
 			unsigned int modelTexture = m_modelsLoaded[modelName].textureIDMap[id.first];
 
+			MathHelper::Matrix4* viewMatrix = (MathHelper::Matrix4*)m_camera->getViewMatrix();
+			MathHelper::Matrix4* projectionMatrix = (MathHelper::Matrix4*)m_camera->getProjectionMatrix();
+
 			m_OpenGLRenderer->renderObject(
 				&m_modelsLoaded[modelName].shaderID,
 				&modelVAO,
 				&modelTexture,
 				m_modelsLoaded[modelName].numFacesInMtl[id.first],
-				model.m_color,
-				&model.m_modelMatrix,
+				model->m_color,
+				&model->m_modelMatrix,
+				viewMatrix,
+				projectionMatrix,
 				COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
 				false
 			);
 		}
 	}
+}
+
+void World::renderQuadNodes()
+{
+	float color[3] = { 0.0f, 2.0f, 0.0f };
+
+	MathHelper::Matrix4* viewMatrix = (MathHelper::Matrix4*)m_camera->getViewMatrix();
+	MathHelper::Matrix4* projectionMatrix = (MathHelper::Matrix4*)m_camera->getProjectionMatrix();
+
+	for (auto& hex : m_visibleCells)
+	{
+		unsigned int modelTexture = 0;
+
+
+		m_OpenGLRenderer->renderObject(
+			&GridProperties.BaseHex.shaderID,
+			&GridProperties.BaseHex.geometryID,
+			&modelTexture,
+			GridProperties.BaseHex.numFaces,
+			color,
+			&hex->m_modelMatrix,
+			viewMatrix,
+			projectionMatrix,
+			COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+			false
+		);
+
+		if (hex->m_modelInstance != nullptr)
+		{
+			string modelName = hex->m_modelInstance->m_modelName;
+
+			for (auto& id : m_modelsLoaded[modelName].geometryIDMap)
+			{
+				unsigned int modelVAO = id.second;
+				unsigned int modelTexture = m_modelsLoaded[modelName].textureIDMap[id.first];
+
+				m_OpenGLRenderer->renderObject(
+					&m_modelsLoaded[modelName].shaderID,
+					&modelVAO,
+					&modelTexture,
+					m_modelsLoaded[modelName].numFacesInMtl[id.first],
+					hex->m_modelInstance->m_color,
+					&hex->m_modelInstance->m_modelMatrix,
+					viewMatrix,
+					projectionMatrix,
+					COpenGLRenderer::EPRIMITIVE_MODE::TRIANGLES,
+					false
+				);
+			}
+		}
+	}
+	m_visibleCells.clear();
 }

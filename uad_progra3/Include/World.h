@@ -5,6 +5,9 @@
 #include "C3DObj.h"
 #include "Hex.h"
 #include "ModelInstance.h"
+#include "CCamera.h"
+#include "AABB_2D.h"
+#include "Quadtree.h"
 
 #include <unordered_map>
 #include <vector>
@@ -26,8 +29,12 @@ public:
 	World() = default;
 	~World();
 
+	Camera* m_camera = nullptr;
+	Quadtree* m_quadtree = nullptr;
+
 	vector<Hex> m_hexes;
-	vector<ModelInstance> m_modelInstances;
+	vector<Hex*> m_visibleCells;
+	vector<ModelInstance*> m_modelInstances;
 
 	struct MODEL
 	{
@@ -74,29 +81,30 @@ public:
 
 	}GridProperties;
 
-	//Models
-	//ModelInstances
-
+	void initializeWorld(int width, int height);
 	void loadWorld(string jsonGridFile, string mediaDirectory);
 	void loadGridProperties(json& data);
 	void loadHexGrid();
 	void loadBaseHex();
 	void oddR();
 	void oddQ();
-	void BaseHexVrtx(CVector3 cellCenter, float cellSize, int numVertex);
+	Point BaseHexVrtx(CVector3 cellCenter, float cellSize, int numVertex, string orientation);
 	void BaseHexNormals();
 	void BaseHexUVs();
 	void BaseHexFaces();
 	void loadModels(json& data, string mediaDirectory);
 	void loadModelInstances(json& data);
+	void loadQuadtree();
 
 	void allocateGraphicMemory();
 	void allocateHex();
 	void allocateModels(string model_name, string obj_file);
 
+	void setNumFacesPerCell();
 	void render();
 	void renderHexGrid();
 	void renderModelInstances();
+	void renderQuadNodes();
 
-	COpenGLRenderer* m_OpenGLRenderer; // Pointer to our OpenGL renderer object
+	COpenGLRenderer* m_OpenGLRenderer = nullptr; // Pointer to our OpenGL renderer object
 };

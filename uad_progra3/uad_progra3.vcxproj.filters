@@ -73,6 +73,18 @@
     <Filter Include="Source Files\Parcial2">
       <UniqueIdentifier>{d15e9482-d96e-4454-9ec6-8d6a03fae78c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Parcial3">
+      <UniqueIdentifier>{8fc8fdf8-2a49-4ba7-b183-fe67dc7d7b87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Parcial3">
+      <UniqueIdentifier>{d6a120fb-4c30-4f16-a54b-e846c74dbb66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Camera">
+      <UniqueIdentifier>{c5e5f61e-d752-4981-ab2a-aa071a9e69f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Camera">
+      <UniqueIdentifier>{a38233c7-a290-4cf2-8b45-ac8c78ad8fba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -180,6 +192,27 @@
     <ClInclude Include="Include\ModelInstance.h">
       <Filter>Header Files\Parcial2</Filter>
     </ClInclude>
+    <ClInclude Include="Include\CApp_Parcial3.h">
+      <Filter>Header Files\Parcial3</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CCamera.h">
+      <Filter>Header Files\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Frustum.h">
+      <Filter>Header Files\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Plane.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\AABB_2D.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\QuadtreeNode.h">
+      <Filter>Header Files\Parcial3</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Quadtree.h">
+      <Filter>Header Files\Parcial3</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -262,6 +295,27 @@
     </ClCompile>
     <ClCompile Include="Source\Hex.cpp">
       <Filter>Source Files\Parcial2</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CApp_Parcial3.cpp">
+      <Filter>Source Files\Parcial3</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CCamera.cpp">
+      <Filter>Source Files\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Frustum.cpp">
+      <Filter>Source Files\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Plane.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\AABB_2D.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\QuadtreeNode.cpp">
+      <Filter>Source Files\Parcial3</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Quadtree.cpp">
+      <Filter>Source Files\Parcial3</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

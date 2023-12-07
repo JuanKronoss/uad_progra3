@@ -165,6 +165,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\AABB_2D.h" />
     <ClInclude Include="Include\C3DModel.h" />
     <ClInclude Include="Include\C3DModel_Obj.h" />
     <ClInclude Include="Include\C3DObj.h" />
@@ -175,8 +176,10 @@
     <ClInclude Include="Include\CAppObjLoader.h" />
     <ClInclude Include="Include\CApp_Parcial1.h" />
     <ClInclude Include="Include\CApp_Parcial2.h" />
+    <ClInclude Include="Include\CApp_Parcial3.h" />
     <ClInclude Include="Include\CBinaryTree.h" />
     <ClInclude Include="Include\CBinaryTreeNode.h" />
+    <ClInclude Include="Include\CCamera.h" />
     <ClInclude Include="Include\CCircularDoubleLinkedList.h" />
     <ClInclude Include="Include\CCircularDoubleLinkedListNode.h" />
     <ClInclude Include="Include\CColor.h" />
@@ -189,6 +192,7 @@
     <ClInclude Include="Include\CTextureLoader.h" />
     <ClInclude Include="Include\CVector3.h" />
     <ClInclude Include="Include\CWideStringHelper.h" />
+    <ClInclude Include="Include\Frustum.h" />
     <ClInclude Include="Include\Globals.h" />
     <ClInclude Include="Include\Hex.h" />
     <ClInclude Include="Include\LoadShaders.h" />
@@ -196,6 +200,9 @@
     <ClInclude Include="Include\MaterialFaces.h" />
     <ClInclude Include="Include\MathHelper.h" />
     <ClInclude Include="Include\ModelInstance.h" />
+    <ClInclude Include="Include\Plane.h" />
+    <ClInclude Include="Include\Quadtree.h" />
+    <ClInclude Include="Include\QuadtreeNode.h" />
     <ClInclude Include="Include\World.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -208,6 +215,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Include\CApp_Parcial2.cpp" />
+    <ClCompile Include="Source\AABB_2D.cpp" />
     <ClCompile Include="Source\C3DModel.cpp" />
     <ClCompile Include="Source\C3DModel_Obj.cpp" />
     <ClCompile Include="Source\C3DObj.cpp" />
@@ -217,6 +225,8 @@
     <ClCompile Include="Source\CAppGeometricFigures.cpp" />
     <ClCompile Include="Source\CAppObjLoader.cpp" />
     <ClCompile Include="Source\CApp_Parcial1.cpp" />
+    <ClCompile Include="Source\CApp_Parcial3.cpp" />
+    <ClCompile Include="Source\CCamera.cpp" />
     <ClCompile Include="Source\CCircularDoubleLinkedList.cpp" />
     <ClCompile Include="Source\CCircularDoubleLinkedListNode.cpp" />
     <ClCompile Include="Source\CGameMenu.cpp" />
@@ -227,9 +237,13 @@
     <ClCompile Include="Source\COpenGLShaderProgram.cpp" />
     <ClCompile Include="Source\CTextureLoader.cpp" />
     <ClCompile Include="Source\CVector3.cpp" />
+    <ClCompile Include="Source\Frustum.cpp" />
     <ClCompile Include="Source\Hex.cpp" />
     <ClCompile Include="Source\LoadShaders.cpp" />
     <ClCompile Include="Source\LoadTGA.cpp" />
+    <ClCompile Include="Source\Plane.cpp" />
+    <ClCompile Include="Source\Quadtree.cpp" />
+    <ClCompile Include="Source\QuadtreeNode.cpp" />
     <ClCompile Include="Source\World.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="uad_progra3.cpp" />
